@@ -447,7 +447,7 @@ Class >> definitionForNautilus [
 	"Answer a String that defines the receiver."
 
 	| aStream poolString |
-	(self usesSpecialVariables or: [ Slot showSlotClassDefinition ])
+	(self needsSlotClassDefinition or: [ Slot showSlotClassDefinition ])
 		ifTrue: [ ^ self definitionForNautilusWithSlots ].
 	poolString := self sharedPoolsString.
 	aStream := (String new: 800) writeStream.
@@ -662,7 +662,7 @@ Class >> hasSharedPools [
 
 { #category : #'accessing class hierarchy' }
 Class >> hasSubclasses [
-	^ self subclasses isEmpty not
+	^ self subclasses isNotEmpty
 ]
 
 { #category : #'subclass creation - immediate' }
