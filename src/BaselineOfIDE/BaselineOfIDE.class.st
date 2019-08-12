@@ -94,12 +94,14 @@ BaselineOfIDE >> additionalInitialization [
 	
 	SDL_Event initialize.
 	
+	HiRulerBuilderTest initialize.
+	
 	3 timesRepeat: [
 		Smalltalk garbageCollect.
 		Undeclared removeUnreferencedKeys.].
 	
 	self loadIceberg.	
-	self loadCalypso.
+	self makeCalypsoDefaultBrowser.
 ]
 
 { #category : #baseline }
@@ -135,6 +137,11 @@ BaselineOfIDE >> baseline: spec [
 		].
 
 		spec baseline: 'Clap' with: [ spec repository: repository ].
+	
+		spec baseline: 'SUnit' with: [
+			spec loads: 'Tests'. 
+			spec repository: repository
+		].
 		
 		spec package: 'ReleaseTests'. 
 		spec package: 'Refactoring-Critics'.
@@ -145,6 +152,7 @@ BaselineOfIDE >> baseline: spec [
 		spec package: 'Epicea'.
 		spec package: 'Hiedra'.
 		spec package: 'EpiceaBrowsers'.
+		spec package: 'Hiedra-Examples'.
 		spec package: 'Hiedra-Tests'. 
 		spec package: 'Ombu-Tests'.
 		spec package: 'Epicea-Tests'.
@@ -162,11 +170,16 @@ BaselineOfIDE >> baseline: spec [
 		spec package: 'Collections-Tests'.
 		spec package: 'Text-Tests'.
 		spec package: 'Network-Tests'.
+		spec package: 'Network-Mail-Tests'.
 		spec package: 'Tests'.
+		spec package: 'System-Installers-Tests'.
+		spec package: 'System-Object Events-Tests'.
+		spec package: 'System-OSEnvironments-Tests'.
 		spec package: 'Ring-Deprecated-Tests-Kernel'.
-		spec package: 'AST-Tests-Core'.
+		spec package: 'AST-Core-Tests'.
 		spec package: 'FileSystem-Tests-Core'.
 		spec package: 'Fuel-Tests-Core'.
+		spec package: 'Fuel-Platform-Pharo-Core-Tests'.
 		spec package: 'Fuel-Tools-Pharo'.
 		spec package: 'Gofer-Tests'.
 		spec package: 'Kernel-Tests'.
@@ -201,7 +214,9 @@ BaselineOfIDE >> baseline: spec [
 		spec package: 'Metacello-Gitlab-Tests'.
 
 		spec package: 'RPackage-Tests'.
+		spec package: 'Tests'.
 		spec package: 'Monticello-Tests'.
+		spec package: 'MonticelloGUI-Tests'.
 
 		spec package: 'Glamour-Announcements'.
 		spec package: 'Glamour-Helpers'.
@@ -254,7 +269,6 @@ BaselineOfIDE >> baseline: spec [
 		spec package: 'SmartSuggestions'.
 		
 		spec package: 'MonticelloMocks'.
-		spec package: 'NodeNavigation'.
 		spec package: 'OpalCompiler-Tools'.
 
 		spec package: 'OSWindow-Core'.
@@ -273,7 +287,7 @@ BaselineOfIDE >> baseline: spec [
 
 		"standalone packages"
 		spec package: 'Announcements-Help'.
-		spec package: 'Announcements-Tests-Core'.
+		spec package: 'Announcements-Core-Tests'.
 		spec package: 'Balloon-Tests'.
 		spec package: 'BlueInk-Extras'.
 		spec package: 'BlueInk-Tests'.
@@ -302,7 +316,6 @@ BaselineOfIDE >> baseline: spec [
 		spec package: 'GT-Tests-Spotter'.
 		spec package: 'Glamour-Morphic-Brick-Tests'.
 		spec package: 'Glamour-Tests-Rubric'.
-		spec package: 'Gofer-UI'.	
 		spec package: 'Graphics-Tests'.
 		spec package: 'HelpSystem-Tests'.
 		spec package: 'IssueTracking-Tests'.
@@ -314,7 +327,6 @@ BaselineOfIDE >> baseline: spec [
 		spec package: 'Multilingual-Tests'.
 		spec package: 'NewValueHolder-Tests'.		
 		spec package: 'NECompletion-Tests'.
-		spec package: 'NodeNavigation-Tests'.
 		spec package: 'OSWindow-SDL2-Examples'.
 		spec package: 'OSWindow-Tests'.
 		spec package: 'PerformMessageCommandLineHandler'.
@@ -332,7 +344,7 @@ BaselineOfIDE >> baseline: spec [
 		spec package: 'Reflectivity-Examples'.
 		spec package: 'Reflectivity-Tools-Tests'.
 		spec package: 'Regex-Help'.
-		spec package: 'Regex-Tests-Core'.
+		spec package: 'Regex-Core-Tests'.
 		spec package: 'Renraku-Help'.
 		spec package: 'Renraku-Test'.
 		spec package: 'Ring-Deprecated-Tests-Monticello'.
@@ -340,8 +352,6 @@ BaselineOfIDE >> baseline: spec [
 		spec package: 'Rubric-Tests'.
 		spec package: 'ScriptingExtensions-Tests'.
 		spec package: 'STON-Tests'.
-		spec package: 'SUnit-Tests'.
-		spec package: 'SUnit-Support-UITesting-Tests'.
 		spec package: 'Shout-Tests'.
 		spec package: 'SmartSuggestions-Tests'.
 		spec package: 'Spec-Help'.	
@@ -382,6 +392,12 @@ BaselineOfIDE >> baseline: spec [
 		spec package: 'UndefinedClasses'.
 		spec package: 'UndefinedClasses-Tests'.
 
+		spec baseline: 'Calypso' with: [ 
+			spec
+				repository: repository;
+				loads: #('FullEnvironment' 'SystemBrowser' 'Tests'). ].
+
+
       self groups: spec.
 	].
 
@@ -393,6 +409,7 @@ BaselineOfIDE >> groups: spec [
 spec group: 'Mandatory-Group' with: #(
 	'Fuel-Tools-Pharo'	"required by GT-Debugger HudsonBuildTools20"
 	'Network-Tests'		"required by Multilingual-Tests"
+	'Network-Mail-Tests'	"previously part of Network-Tests"
 	'Gofer-Tests'		"required by EpiceaTests Metacello-TestsMC, depends on 'Metacello-Tests-Group', cleanup needed?"
 ). 
 
@@ -403,21 +420,16 @@ spec group: 'Optional-Group' with: #(
 	'STON-Text support'	"standalone?"
 	'System-CommandLine-TextSupport'	"standalone?"
 	'System-Serial Port'	"standalone?"
-	'Gofer-UI'	"standalone"
 	'PerformMessageCommandLineHandler' 	"standalone"
 	'Files-Prompt'
-).	
-	
-spec group: 'NodeNavigation-Group' with: #(
-	'NodeNavigation'	"standalone?"
-	'NodeNavigation-Tests'	
-).					
+).				
 
 spec group: 'Epicea-Core-Group' with: #(
 	'Athens' "dependency of Hiedra"
 	'Ombu'
 	'Epicea'
 	'Hiedra'
+	'Hiedra-Examples'
 	'EpiceaBrowsers').
 spec group: 'Epicea-Tests-Group' with: #(
 	'Ombu-Tests'
@@ -440,9 +452,13 @@ spec group: 'General-Help-Group' with: #(
 spec group: 'General-Tests-Group' with: #(
 	'Kernel-Tests-Group' "dependency"
 	'Debugging-Utils-Tests'
+	'Tests'
+	'RPackage-Tests'
 	'Monticello-Tests'	"required by MonticelloMocks"
+	'System-Installers-Tests' 
 	'MonticelloMocks'
 	'Fuel-Tests-Core'
+	'Fuel-Platform-Pharo-Core-Tests'	
 	'Balloon-Tests'
 	'Collections-DoubleLinkedList-Tests'
 	'Collections-Arithmetic-Tests'
@@ -456,7 +472,6 @@ spec group: 'General-Tests-Group' with: #(
 	'FreeType-Tests'
 	'FreeType-Help'
 
-	'Gofer-UI'	
 	'Graphics-Tests'
 	'HelpSystem-Tests'
 	'IssueTracking-Tests'
@@ -469,13 +484,12 @@ spec group: 'General-Tests-Group' with: #(
 	'NewValueHolder-Tests'
 	'ProfStef-Tests'
 	'Reflectivity-Tools-Tests'
-	'Regex-Tests-Core'
+	'Regex-Core-Tests'
 	'Ring-Deprecated-Tests-Monticello'
 	'Rubric-Tests'
 	'ScriptingExtensions-Tests'
 	'STON-Tests'
-	'SUnit-Tests'
-	'SUnit-Support-UITesting-Tests'
+	'SUnit'
 	'Spec-Tests'
 	'System-Caching-Tests'
 	'System-Hashing-Tests'
@@ -757,8 +771,8 @@ spec group: 'Kernel-Tests-Group' with: #(
 	'Kernel-Tests' 
 	'Kernel-Tests-Extended' 
 	'Kernel-Tests-WithCompiler'
-	'AST-Tests-Core' "requires BlueInk-Core"
-	'Announcements-Tests-Core'
+	'AST-Core-Tests' "requires BlueInk-Core"
+	'Announcements-Core-Tests'
 	'Compression-Tests' 
 	'FileSystem-Tests-Core' 
 	'FileSystem-Tests-Disk'
@@ -773,6 +787,8 @@ spec group: 'Kernel-Tests-Group' with: #(
 	'Ring-Deprecated-Tests-Kernel'
 	'Ring-Deprecated-Tests-Containers' 
 	'Tests' 
+	'System-Object Events-Tests'
+	'System-OSEnvironments-Tests'
 	'Zinc-Character-Encoding-Tests' 
 	'System-Platforms-Tests'
 	'Text-Tests'		"required by Multilingual-Tests"
@@ -806,10 +822,10 @@ spec group: 'GT&QA-Group' with: #(
 ).		
 
 spec group: 'UndefinedClasses-Group' with: #(
-		'ClassParser'
-		'ClassParser-Tests'
-		'UndefinedClasses'
-		'UndefinedClasses-Tests'
+	'ClassParser'
+	'ClassParser-Tests'
+	'UndefinedClasses'
+	'UndefinedClasses-Tests'
 ).		
 
 spec group: #default with: #(
@@ -840,7 +856,6 @@ spec group: #default with: #(
 	'Catalog-Group'
 	'Epicea-Group'
 	'Optional-Group'
-	'NodeNavigation-Group'
 	'General-Tests-Group'
 	'SortFunctions-Group'	
 	'ReferenceFinder-Group'
@@ -858,36 +873,27 @@ spec group: #default with: #(
 	
 	'Refactoring2-Group'
 	'UndefinedClasses-Group'
+	
+	'Calypso'
 ).
 
-]
-
-{ #category : #actions }
-BaselineOfIDE >> loadCalypso [
-
-	"Load Calypso without Iceberg Metacello integration"
-	(self class environment at: #Iceberg) enableMetacelloIntegration: false.
-
-	Metacello new
-		baseline: 'Calypso';
-		repository: 'github://pharo-ide/Calypso:v0.16.4/src';
-		onConflict: [ :err | err useIncoming ];
-		onUpgrade: [ :err | err useIncoming ];
-		load: #('FullEnvironment' 'SystemBrowser' 'Tests').
-
-	(self class environment at: #ClyBrowserMorph) beAllDefault.
-	
-	(self class environment at: #Iceberg) enableMetacelloIntegration: true.
 ]
 
 { #category : #actions }
 BaselineOfIDE >> loadIceberg [
 	Metacello new
 		baseline: 'Iceberg';
-		repository: 'github://pharo-vcs/iceberg:v1.7.1';
+		repository: 'github://pharo-vcs/iceberg:v1.7.2';
+		onConflictUseLoaded;
 		load.
 	(Smalltalk classNamed: #Iceberg) enableMetacelloIntegration: true.
 	(Smalltalk classNamed: #IcePharoPlugin) addPharoProjectToIceberg.
+]
+
+{ #category : #actions }
+BaselineOfIDE >> makeCalypsoDefaultBrowser [
+
+	(self class environment at: #ClyBrowserMorph) beAllDefault.
 ]
 
 { #category : #actions }

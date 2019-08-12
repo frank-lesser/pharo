@@ -538,6 +538,7 @@ TimeProfiler >> selectedMethodCode [
 
 { #category : #compiling }
 TimeProfiler >> selectedMethodCode: aString notifying: aController [
+
 	"Compile the code in aString. Notify aController of any syntax errors. 
 	Answer false if the compilation fails. Otherwise answer true."
 
@@ -545,15 +546,16 @@ TimeProfiler >> selectedMethodCode: aString notifying: aController [
 		ifNil: [ ^ false ]
 		ifNotNil: [ :currNode | 
 			| class oldSelector category newSelector |
+
 			class := currNode methodClass.
 			oldSelector := currNode selector.
 			class ifNil: [ ^ false ].	"Normal method accept"
 			category := class organization categoryOfElement: oldSelector.
 			newSelector := class compile: aString classified: category notifying: aController.
-			newSelector isNil
-				ifTrue: [ ^ false ].
+			newSelector ifNil: [ ^ false ].
 			self changed: #selectedMethodCode.
-			^ true ]
+			^ true
+			]
 ]
 
 { #category : #accessing }
@@ -688,7 +690,7 @@ TimeProfiler >> toolBarOn: aWindow [
 	toolBar := toolBar := aWindow
 		newToolbar:
 			{((uiTheme
-				newButtonIn: World
+				newButtonIn: self currentWorld
 				for: self
 				getState: nil
 				action: #profileIt
@@ -698,7 +700,7 @@ TimeProfiler >> toolBarOn: aWindow [
 				help: nil)
 				label:
 					(uiTheme
-						newRowIn: World
+						newRowIn: self currentWorld
 						for:
 							{(AlphaImageMorph new
 								image: (self iconNamed: #smallDoItIcon)).
@@ -739,7 +741,7 @@ TimeProfiler >> toolBarOn: aWindow [
 			aWindow newToolSpacer.
 			aWindow newToolSpacer.
 			(uiTheme
-				newCheckboxIn: World
+				newCheckboxIn: self currentWorld
 				for: self
 				getSelected: #reportOtherProcesses
 				setSelected: #reportOtherProcesses:

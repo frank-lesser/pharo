@@ -110,13 +110,15 @@ ClassDescription >> addSlot: aSlot [
 ClassDescription >> allInstVarNamesEverywhere [
 	"Answer the set of inst var names used by the receiver, all superclasses, and all subclasses"
 
-	| aList |
-	aList := OrderedCollection new.
-	(self allSuperclasses , self withAllSubclasses asOrderedCollection) do:
-		[:cls | aList addAll: cls instVarNames].
-	^ aList asSet
+	^ self withAllSuperAndSubclasses flatCollectAsSet: [ :cls | cls instVarNames ]
+]
 
-	"BorderedMorph allInstVarNamesEverywhere"
+{ #category : #'obsolete subclasses' }
+ClassDescription >> allLocalCallsOn: aSymbol [
+	"Answer all the methods that call on aSymbol, anywhere in my class hierarchy."
+
+	^ self instanceSide withAllSuperAndSubclasses flatCollect: [ :class | 
+			(class thoroughWhichMethodsReferTo: aSymbol), (class class thoroughWhichMethodsReferTo: aSymbol)]
 ]
 
 { #category : #'accessing method dictionary' }
@@ -142,16 +144,14 @@ ClassDescription >> allSelectorsInProtocol: aName [
 	"Answer a list of all the methods of the receiver and all its 
 	superclasses that are in the protocol named aName"
 	
-	| aColl |
-	aColl := OrderedCollection new.
-	self withAllSuperclasses do: [:aClass | 
-		aColl addAll: (aClass organization listAtCategoryNamed: aName) ].
-	^ aColl asSet asArray sort
+	^self withAllSuperclasses
+		flatCollectAsSet: [ :class | class organization listAtCategoryNamed: aName ]
+		
 ]
 
 { #category : #'pool variable' }
 ClassDescription >> allSharedPools [
-	"Answer an ordered collection  of the shared pools the receiver shares, including those defined  in the superclasses of the receiver."
+	"Answer an ordered collection of the shared pools the receiver shares, including those defined  in the superclasses of the receiver."
 	
 	^ OrderedCollection new
 ]
@@ -161,26 +161,11 @@ ClassDescription >> allSlots [
 	^self classLayout allVisibleSlots
 ]
 
-{ #category : #slots }
-ClassDescription >> allSlotsEverywhere [
-	"Answer the set of slots used by the receiver, all superclasses, and all subclasses"
-
-	| aList |
-	aList := OrderedCollection new.
-	(self allSuperclasses , self withAllSubclasses asOrderedCollection) do:
-		[:cls | aList addAll: cls slots].
-	^ aList asSet
-]
-
 { #category : #enumerating }
 ClassDescription >> allUnreferencedInstanceVariables [
-	"Return a list of the instance variables known to the receiver which are not referenced in the receiver or any of its subclasses OR superclasses"
+	"Return a list of the instance variables known to the receiver which are not referenced"
 
-	^ self allInstVarNames reject: [:ivn |
-		| definingClass |		
-		definingClass := self classThatDefinesInstanceVariable: ivn.
-		definingClass withAllSubclasses anySatisfy: [:class |  
-				(class whichSelectorsAccess: ivn asSymbol) notEmpty]]
+	^ self allSlots reject: [:slot | slot isReferenced]
 ]
 
 { #category : #authors }
@@ -278,7 +263,6 @@ ClassDescription >> classCommentBlank [
 
 	| stream |
 	stream := (String new: 100) writeStream.
-	
 	stream nextPutAll: 'Please comment me using the following template inspired by Class Responsibility Collaborator (CRC) design:
 
 For the Class part:  State a one line summary. For example, "I represent a paragraph of text".
@@ -329,9 +313,11 @@ ClassDescription >> classThatDefinesClassVariable: classVarName [
 ]
 
 { #category : #'instance variables' }
-ClassDescription >> classThatDefinesInstanceVariable: instVarName [
-	(self instVarNames notNil and: [self instVarNames includes: instVarName asString]) ifTrue: [^ self]. 
-	^self superclass ifNotNil: [self superclass classThatDefinesInstanceVariable: instVarName]
+ClassDescription >> classThatDefinesInstVarNamed: instVarName [
+	^self 
+		slotNamed: instVarName
+		 ifFound: [ :slot | slot definingClass  ]
+		 ifNone: nil
 ]
 
 { #category : #slots }
@@ -387,16 +373,6 @@ ClassDescription >> comment: aStringOrText stamp: aStamp [
 	"Set the receiver's comment to be the argument, aStringOrText."
 
 	self instanceSide classComment: aStringOrText stamp: aStamp.
-]
-
-{ #category : #'accessing class hierarchy' }
-ClassDescription >> commentInventory [
-	"Answer a string with a count of the classes with and without comments 
-	for all the classes in the package of which this class is a member."
-
-	"Morph commentInventory"
-
-	^ self environment organization commentInventory: (self category copyUpTo: $-), '*'
 ]
 
 { #category : #'filein/out' }
@@ -606,9 +582,9 @@ ClassDescription >> definitionForNautilus [
 
 { #category : #'filein/out' }
 ClassDescription >> definitionWithSlots [
-	"the class definition with a way to specify slots. Shown when the class defines special Slot"
+	"The class definition with a way to specify slots. Shown when the class defines special Slot"
+	
 	| stream poolString|
-
 	poolString := self sharedPoolsString.
 
 	stream := (String new: 800) writeStream.
@@ -661,8 +637,8 @@ ClassDescription >> definitionWithSlots [
 
 { #category : #'filein/out' }
 ClassDescription >> definitionWithoutSlots [
-	| poolString stream |
 
+	| poolString stream |
 	poolString := self sharedPoolsString.
 	stream := (String new: 800) writeStream.
 	superclass
@@ -737,7 +713,7 @@ ClassDescription >> hasClassSide [
 
 { #category : #'accessing comment' }
 ClassDescription >> hasComment [
-	"return whether this class truly has a comment other than the default"
+	"Return whether this class truly has a comment other than the default"
 	^self instanceSide organization hasComment
 ]
 
@@ -763,9 +739,10 @@ ClassDescription >> hasSlot: aSlot [
 
 { #category : #slots }
 ClassDescription >> hasSlotNamed: aString [
-	"Return true whether the receiver defines an instance variable named aString."
+	"Return true whether the receiver defines an instance variable named aString.
+	this includes non-visible slots"
 	
-	^ self allSlots anySatisfy: [:slot | slot name = aString]
+	^ self classLayout hasSlotNamed: aString
 ]
 
 { #category : #'instance variables' }
@@ -779,15 +756,10 @@ ClassDescription >> instVarIndexFor: instVarName [
 ClassDescription >> instVarIndexFor: instVarName ifAbsent: aBlock [
 	"Answer the index of the named instance variable."
 
-	| index |
-	index := self classLayout instVarIndexFor: instVarName ifAbsent: 0.
-	index = 0 ifTrue: 
-		[^self superclass
-			ifNil: [aBlock value]
-			ifNotNil: [self superclass instVarIndexFor: instVarName ifAbsent: aBlock]].
-	^self superclass
-		ifNil: [index]
-		ifNotNil: [index + self superclass instSize]
+	^self
+		slotNamed: instVarName
+		ifFound: [ :slot | slot isVirtual ifTrue: aBlock ifFalse: [slot index]]
+		ifNone: aBlock
 ]
 
 { #category : #private }
@@ -800,41 +772,10 @@ ClassDescription >> instVarMappingFrom: oldClass [
 ]
 
 { #category : #'instance variables' }
-ClassDescription >> instVarNameForIndex: index [
-	"Answer the named instance variable with index index or nil if none."
-
-	| superInstSize |
-	index > self instSize ifTrue: [^nil].
-	superInstSize := self superclass ifNil: [0] ifNotNil: [self superclass instSize].
-	index > superInstSize ifTrue:
-		[^self instVarNames at: index - superInstSize].
-	self superclass ifNil: [^nil].
-	^self superclass instVarNameForIndex: index
-
-	"(Object allSubclasses select:
-		[:cls| cls instSize > cls superclass instSize and: [cls subclasses isEmpty and: [cls superclass instSize > 0]]]) collect:
-			[:cls| (1 to: cls instSize) collect: [:i| cls instVarNameForIndex: i]]"
-]
-
-{ #category : #'instance variables' }
 ClassDescription >> instVarNames [
 	"Answer an Array of the receiver's instance variable names."
 
 	^self localSlots collect: [ :each | each name ]
-]
-
-{ #category : #compiling }
-ClassDescription >> instVarNamesAndOffsetsDo: aBinaryBlock [
-	"This is part of the interface between the compiler and a class's instance or field names.
-	 The class should enumerate aBinaryBlock with the instance variable name strings and
-	 their integer offsets.  The order is important. Names evaluated later will override the
-	 same names occurring earlier."
-
-	| superInstSize |
-	(superInstSize := self superclass notNil ifTrue: [self superclass instSize] ifFalse: [0]) > 0 ifTrue:
-		[self superclass instVarNamesAndOffsetsDo: aBinaryBlock].
-	1 to: self instSize - superInstSize do:
-		[:i| aBinaryBlock value: (self instVarNames at: i) value: i + superInstSize]
 ]
 
 { #category : #'accessing parallel hierarchy' }
@@ -848,7 +789,11 @@ ClassDescription >> instanceSide [
 
 { #category : #accessing }
 ClassDescription >> instanceVariables [
-	^self instVarNames.
+	"we deprecate this due to bad naming: it returns names, not variables!"
+	self
+		deprecated: 'Please use #instVarNames or #slotNames instead'
+		transformWith: '`@receiver instanceVariables' -> '`@receiver instVarNames'.
+	^self instVarNames
 ]
 
 { #category : #printing }
@@ -1305,12 +1250,6 @@ ClassDescription >> storeOn: aStream [
 	aStream nextPutAll: self name
 ]
 
-{ #category : #'accessing class hierarchy' }
-ClassDescription >> subclassesDo: aBlock [
-	"Evaluate the argument, aBlock, for each of the receiver's immediate subclasses."
-	^self subclasses do: aBlock
-]
-
 { #category : #initialization }
 ClassDescription >> superclass: aClass methodDictionary: mDict format: fmt [
 	"Basic initialization of the receiver"
@@ -1388,65 +1327,6 @@ ClassDescription >> untagFrom: aSymbol [
 	packageTag name = aSymbol ifFalse: [ ^self ].
 	packageTag removeClass: self.
 	package addClass: self
-]
-
-{ #category : #initialization }
-ClassDescription >> updateInstances: oldInstances from: oldClass isMeta: isMeta [
-	"Recreate any existing instances of the argument, oldClass, as instances of the receiver,
-	 which is a newly changed class. Permute variables as necessary, and forward old instances
-	 to new instances.  Answer nil to defeat old clients that expect an array of old instances.
-	 The old behaviour, which necessitated a global GC, exchanged identities and answered
-	 the old instances.  But no clients used the result.  This way we avoid the unnecessary GC,"
-
-	| variable instSize newInstances |
-	oldInstances isEmpty
-		ifTrue: [ ^ nil ].	"no instances to convert"
-	isMeta ifTrue:
-		[(oldInstances size = 1
-		  and: [self soleInstance class == self
-				or: [self soleInstance class == oldClass]]) ifFalse:
-			[^self error: 'Metaclasses can only have one instance']].
-	variable := self isVariable.
-	instSize := self instSize.
-	newInstances := Array new: oldInstances size.
-	1 to: oldInstances size do: [ :i | newInstances at: i put: (self newInstanceFrom: (oldInstances at: i) variable: variable size: instSize) ].	"Now perform a bulk mutation of old instances into new ones"
-	oldInstances elementsForwardIdentityTo: newInstances.
-	^ nil
-]
-
-{ #category : #initialization }
-ClassDescription >> updateInstancesFrom: oldClass [
-	"Recreate any existing instances of the argument, oldClass, as instances of 
-	the receiver, which is a newly changed class. Permute variables as 
-	necessary. Return the array of old instances (none of which should be
-	pointed to legally by anyone but the array)."
-	"ar 7/15/1999: The updating below is possibly dangerous. If there are any
-	contexts having an old instance as receiver it might crash the system if
-	the new receiver in which the context is executed has a different layout.
-	See bottom below for a simple example:"
-	| oldInstances |
-	oldInstances := oldClass allInstances asArray.
-	oldInstances := self updateInstances: oldInstances from: oldClass isMeta: self isMeta.
-	^nil
-
-"	| crashingBlock class |
-	class := Object subclass: #CrashTestDummy
-		instanceVariableNames: 'instVar'
-		classVariableNames: ''
-		poolDictionaries: ''
-		category: 'Crash-Test'.
-	class compile:'instVar: value instVar := value'.
-	class compile:'crashingBlock ^[instVar]'.
-	crashingBlock := (class new) instVar: 42; crashingBlock.
-	Object subclass: #CrashTestDummy
-		instanceVariableNames: ''
-		classVariableNames: ''
-		poolDictionaries: ''
-		category: 'Crash-Test'.
-	crashingBlock.
-	crashingBlock value.
-	"
-
 ]
 
 { #category : #'pool variable' }

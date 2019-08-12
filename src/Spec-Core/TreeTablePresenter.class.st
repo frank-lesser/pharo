@@ -213,6 +213,11 @@ TreeTablePresenter >> selectPath: aPath [
 ]
 
 { #category : #api }
+TreeTablePresenter >> selectPaths: pathArray [
+	self selection selectPaths: pathArray
+]
+
+{ #category : #api }
 TreeTablePresenter >> selectedItem [
 	
 	^ self selection selectedItem
@@ -270,13 +275,13 @@ TreeTablePresenter >> whenRootsChangedDo: aBlockClosure [
 { #category : #'api-events' }
 TreeTablePresenter >> whenSelectedIndexChangedDo: aBlockClosure [ 
 	
-	self whenSelectionChangedDo: [ :selection | aBlockClosure cull: selection first ]
+	self whenSelectionChangedDo: [ :aSelection | aBlockClosure cull: aSelection first ]
 ]
 
 { #category : #'api-events' }
 TreeTablePresenter >> whenSelectedItemChangedDo: aBlockClosure [ 
 	
-	self whenSelectionChangedDo: [ :selection | aBlockClosure cull: selection second ]
+	self whenSelectionChangedDo: [ :aSelection | aBlockClosure cull: aSelection second ]
 ]
 
 { #category : #'api-events' }

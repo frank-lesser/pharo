@@ -21,10 +21,10 @@ AbstractTextPresenter >> aboutToStyle: aBoolean [
 	"<api: #boolean getter: #isAboutToStyle registration: #whenAboutToStyleChanged:>"
 	"Set if the text zone must be styled"
 	
-	"self 
+	self 
 		deprecated: 'This has been moved to specific presenters' 
 		on: '2019-04-15'
-		in: #Pharo8"
+		in: #Pharo8
 ]
 
 { #category : #'api-shout' }
@@ -329,39 +329,6 @@ AbstractTextPresenter >> initialize [
 	askBeforeDiscardingEdits := true asValueHolder.
 
 	self registerEvents
-]
-
-{ #category : #'api-shout' }
-AbstractTextPresenter >> isAboutToStyle [
-	"Return if the text zone is shouted or not"
-
-	self 
-		deprecated: 'This has been moved to specific presenters' 
-		on: '2019-04-15'
-		in: #Pharo8
-]
-
-{ #category : #NOCompletion }
-AbstractTextPresenter >> isCodeCompletionAllowed [
-	"Return if code completion is allowed"
-	
-	"self 
-		deprecated: 'The forCode functionality has moved to TextCodePresenter, please use it instead TextPresenter.' 
-		on: '2019-04-05' 
-		in: #Pharo8"
-		
-	^ false
-]
-
-{ #category : #api }
-AbstractTextPresenter >> isCodeCompletionAllowed: aBoolean [
-	"<api: #boolean getter: #isCodeCompletionAllowed registration: #whenCodeCompletionAllowedChanged:>"
-	"Set if code completion is allowed"
-	
-	"self 
-		deprecated: 'The forCode functionality has moved to TextCodePresenter, please use it instead TextPresenter.' 
-		on: '2019-04-05' 
-		in: #Pharo8"
 ]
 
 { #category : #api }

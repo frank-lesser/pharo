@@ -199,11 +199,6 @@ UndefinedObject >> isNotNil [
 	^false
 ]
 
-{ #category : #'class hierarchy' }
-UndefinedObject >> literalScannedAs: scannedLiteral notifying: requestor [ 
-	^ scannedLiteral
-]
-
 { #category : #testing }
 UndefinedObject >> notNil [ 
 	"Refer to the comment in Object|notNil."
@@ -238,7 +233,7 @@ UndefinedObject >> storeOn: aStream [
 
 { #category : #'class hierarchy' }
 UndefinedObject >> subclass: nameOfClass  
-	instanceVariableNames: instVarNames
+	instanceVariableNames: instVarNameList
 	classVariableNames: classVarNames
 	poolDictionaries: poolDictnames
 	category: category [
@@ -246,7 +241,7 @@ UndefinedObject >> subclass: nameOfClass
 	self traceCr: ('Attempt to create ', nameOfClass, ' as a subclass of nil.  Possibly a class is being loaded before its superclass.').
 	^ Object
 		subclass: nameOfClass
-		instanceVariableNames: instVarNames
+		instanceVariableNames: instVarNameList
 		classVariableNames: classVarNames
 		poolDictionaries: poolDictnames
 		category: category

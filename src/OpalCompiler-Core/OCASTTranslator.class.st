@@ -451,6 +451,7 @@ OCASTTranslator >> translateFullBlock: aBlockNode [
 			withVars: (aBlockNode scope tempVector collect: [:each| each name]) asArray.
 	].
 	valueTranslator visitNode: aBlockNode body.
+	methodBuilder mapToNode: aBlockNode body.
 	methodBuilder addBlockReturnTopIfRequired.
 	aBlockNode ir: self ir.
 	^ aBlockNode ir compiledBlock: aBlockNode scope
@@ -634,7 +635,7 @@ OCASTTranslator >> visitNode: aNode [
 { #category : #'visitor-double dispatching' }
 OCASTTranslator >> visitParseErrorNode: anErrorNode [  
 	methodBuilder 
-		pushLiteralVariable: #error -> anErrorNode asSyntaxErrorNotification;
+		pushLiteralVariable: (AdditionalBinding key: #error value: anErrorNode asSyntaxErrorNotification);
 		send: #signal.
 
 

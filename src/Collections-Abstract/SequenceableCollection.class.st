@@ -619,10 +619,10 @@ SequenceableCollection >> copyReplaceFrom: start to: stop with: replacementColle
 
 { #category : #copying }
 SequenceableCollection >> copyUpThrough: anElement [
-	self 
-		deprecated: 'use #copyUpTo: on the method instead' 
-		transformWith: '`@receiver copyUpThrough: `@argument' -> '`@receiver copyUpTo: `@argument'.
-    ^self copyUpTo: anElement
+    "Answer all elements up to and including anObject. If there
+     is no such object, answer a copy of the receiver."
+
+	^self first: (self indexOf: anElement ifAbsent: [^ self copy])
 ]
 
 { #category : #copying }
@@ -1251,18 +1251,6 @@ SequenceableCollection >> indexOfSubCollection: sub startingAt: start ifAbsent: 
 				[index = sub size ifTrue: [^startIndex].
 				index := index+1]]].
 	^ exceptionBlock value
-]
-
-{ #category : #accessing }
-SequenceableCollection >> integerAt: index [
-	"Return the integer at the given index"
-	^self at: index
-]
-
-{ #category : #accessing }
-SequenceableCollection >> integerAt: index put: value [
-	"Return the integer at the given index"
-	^self at: index put: value
 ]
 
 { #category : #converting }
