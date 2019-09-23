@@ -501,6 +501,11 @@ CompiledCode >> longPrintOn: aStream [
 
 ]
 
+{ #category : #accessing }
+CompiledCode >> methodClass [
+	self subclassResponsibility
+]
+
 { #category : #initialization }
 CompiledCode >> needsFrameSize: newFrameSize [
 	"Set the largeFrameBit to accomodate the newFrameSize"
@@ -565,7 +570,7 @@ CompiledCode >> primitiveErrorVariableName [
 	self isPrimitive ifTrue:
 		[self pragmas do:
 			[:pragma| | kwds ecIndex |
-			((kwds := pragma keyword keywords) first = 'primitive:'
+			((kwds := pragma selector keywords) first = 'primitive:'
 			and: [(ecIndex := kwds indexOf: 'error:') > 0]) ifTrue:
 				[^pragma argumentAt: ecIndex]]].
 	^nil

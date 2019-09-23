@@ -127,13 +127,14 @@ Object class >> howToModifyPrimitives [
 { #category : #'class initialization' }
 Object class >> initialize [
 	"Object initialize"
-	DependentsFields ifNil:[self initializeDependentsFields].
+	DependentsFields ifNil:[ self initializeDependentsFields ]
 ]
 
 { #category : #'class initialization' }
 Object class >> initializeDependentsFields [
-	"Object initialize"
-	DependentsFields := WeakIdentityKeyDictionary new.
+	<script: 'Object initialize'>
+	
+	DependentsFields := WeakIdentityKeyDictionary new
 
 ]
 
@@ -148,13 +149,13 @@ Object class >> newFrom: aSimilarObject [
 
 { #category : #'class initialization' }
 Object class >> reInitializeDependentsFields [
-	"Object reInitializeDependentsFields"
+	<script>
+
 	| oldFields |
 	oldFields := DependentsFields.
 	DependentsFields := WeakIdentityKeyDictionary new.
-	oldFields keysAndValuesDo:[:obj :deps|
-		deps do:[:d| obj addDependent: d]].
-
+	oldFields
+		keysAndValuesDo: [ :obj :deps | deps do: [ :d | obj addDependent: d ] ]
 ]
 
 { #category : #'instance creation' }
@@ -657,21 +658,9 @@ Object >> copySameFrom: otherObject [
 
 ]
 
-{ #category : #'logging-Deprecated' }
-Object >> crLog [
-      self crTrace: self printString
-]
-
-{ #category : #'logging-Deprecated' }
-Object >> crLog: aString [
-	"Log the argument. Use self log: instead of Transcript cr; show: "
-	
-	Transcript cr; show: aString.
-]
-
 { #category : #tracing }
 Object >> crTrace [
-      self crTrace: self printString
+	self crTrace: self printString
 ]
 
 { #category : #tracing }
@@ -1372,51 +1361,19 @@ Object >> literalEqual: other [
 	^ self class == other class and: [self = other]
 ]
 
-{ #category : #'logging-Deprecated' }
-Object >> log: aString [
-	"Log the argument. Use self log: instead of Transcript show: "
-	
-	Transcript show: aString.
-]
-
-{ #category : #'logging-Deprecated' }
-Object >> logCr [
-      self logCr: self printString
-]
-
-{ #category : #'logging-Deprecated' }
-Object >> logCr: aString [
-	"Log the argument. Use self logCr: 'something' instead of Transcript show: 'something'  ; cr "
-	
-	Transcript show: aString ; cr
-]
-
-{ #category : #'logging-Deprecated' }
-Object >> logCrTab: aString [
-	"Log the argument. Use self logCr: 'something' instead of Transcript show: 'something'  ; cr ; tab"
-	
-	Transcript show: aString ; cr ; tab
-]
-
 { #category : #flagging }
 Object >> logEntry [
-
-	Transcript show: 'Entered ', thisContext sender printString; cr.
-
+	self traceCr: 'Entered ' , thisContext sender printString
 ]
 
 { #category : #flagging }
 Object >> logExecution [
-
-	Transcript show: 'Executing ', thisContext sender printString; cr.
-
+	self traceCr: 'Executing ' , thisContext sender printString
 ]
 
 { #category : #flagging }
 Object >> logExit [
-
-	Transcript show:  'Exited ', thisContext sender printString; cr.
-
+	self traceCr: 'Exited ' , thisContext sender printString
 ]
 
 { #category : #printing }
@@ -1957,25 +1914,25 @@ Object >> species [
 	^self class
 ]
 
-{ #category : #'model - stepping' }
+{ #category : #stepping }
 Object >> stepAt: millisecondClockValue in: aWindow [
 
 	^ self stepIn: aWindow
 ]
 
-{ #category : #'model - stepping' }
+{ #category : #stepping }
 Object >> stepIn: aWindow [
 
 	^ self step
 ]
 
-{ #category : #'model - stepping' }
+{ #category : #stepping }
 Object >> stepTime [
 	
 	^ 1000 "milliseconds -- default backstop for objects serving as models of system windows"
 ]
 
-{ #category : #'model - stepping' }
+{ #category : #stepping }
 Object >> stepTimeIn: aSystemWindow [
 	
 	^ 1000 "milliseconds -- default backstop for objects serving as models of system windows"
@@ -2049,19 +2006,19 @@ Object >> toFinalizeSend: aSelector to: aFinalizer with: aResourceHandle [
 
 { #category : #tracing }
 Object >> trace [
-      self trace: self printString
+	self trace: self printString
 ]
 
 { #category : #tracing }
 Object >> trace: aString [
 	"Log the argument. Use self trace: instead of Transcript show: "
 	
-	Transcript show: aString.
+	Transcript show: aString
 ]
 
 { #category : #tracing }
 Object >> traceCr [
-      self traceCr: self printString
+	self traceCr: self printString
 ]
 
 { #category : #tracing }
@@ -2069,6 +2026,13 @@ Object >> traceCr: aString [
 	"Log the argument. Use self traceCr: 'something' instead of Transcript show: 'something'  ; cr "
 	
 	Transcript show: aString ; cr
+]
+
+{ #category : #tracing }
+Object >> traceCrTab: aString [
+	"Log the argument. Use self traceCr: 'something' instead of Transcript show: 'something'  ; cr "
+	
+	Transcript show: aString ; cr ; tab
 ]
 
 { #category : #'error handling' }
@@ -2201,7 +2165,7 @@ Object >> veryDeepInner: deepCopier [
 	"avoid to use me we will deprecate it in the future"
 ]
 
-{ #category : #'model - stepping' }
+{ #category : #stepping }
 Object >> wantsSteps [
 	"Overridden by morphic classes whose instances want to be stepped,
 	or by model classes who want their morphic views to be stepped."
@@ -2209,7 +2173,7 @@ Object >> wantsSteps [
 	^ false
 ]
 
-{ #category : #'model - stepping' }
+{ #category : #stepping }
 Object >> wantsStepsIn: aSystemWindow [
 	
 	^ self wantsSteps

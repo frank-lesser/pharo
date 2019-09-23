@@ -26,11 +26,9 @@ SpNotebookPresenter >> addPage: aPage [
 
 { #category : #initialization }
 SpNotebookPresenter >> initialize [
-
 	super initialize.
 	pagesHolder := OrderedCollection new asValueHolder.
-	selectedPage := nil.
-	
+
 	pagesHolder whenChangedDo: [ self pagesChanged ]
 ]
 
@@ -55,8 +53,9 @@ SpNotebookPresenter >> pages [
 { #category : #accessing }
 SpNotebookPresenter >> pages: aCollection [
 
-	aCollection do: [ :each |
-		self addPage: each ]
+	aCollection do: [ :each | each owner: self ].
+	pagesHolder rawValue: aCollection.
+	pagesHolder valueChanged: nil
 ]
 
 { #category : #private }

@@ -116,7 +116,7 @@ ExternalStructure class >> compileAlias: spec withAccessors: aSymbol [
 		ifNil:
 			[ "non-atomic" Symbol hasInterned: fieldType ifTrue: [ :sym | externalType := ExternalType structTypeNamed: sym ] ].
 	externalType
-		ifNil: [ Transcript show: '(' , fieldType , ' is void)'.
+		ifNil: [ self trace: '(' , fieldType , ' is void)'.
 			externalType := ExternalType void
 			].
 	isPointerField
@@ -186,7 +186,7 @@ ExternalStructure class >> compileFields: specArray withAccessors: aSymbol [
 					ifTrue: [:sym | externalType := ExternalType structTypeNamed: sym].
 			].
 			externalType == nil ifTrue:[
-				Transcript show: '(' , fieldType , ' is void)'.
+				self trace: '(' , fieldType , ' is void)'.
 				externalType := ExternalType void.
 			].
 			isPointerField ifTrue: [externalType := externalType asPointerType: self pointerSize]].
@@ -414,7 +414,7 @@ ExternalStructure class >> shouldGenerate: fieldname policy: aSymbol [
 	aSymbol = #generated
 		ifTrue: [^ (self methodDictionary includesKey: fieldname)
 				and: [(self methodDictionary at: fieldname) pragmas
-						anySatisfy: [:p | p keyword = #generated]]].
+						anySatisfy: [:p | p selector = #generated]]].
 	self error: 'unknow generation policy'
 ]
 

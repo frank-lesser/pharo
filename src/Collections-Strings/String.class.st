@@ -1554,24 +1554,29 @@ String >> findWordStart: key startingAt: start [
 ]
 
 { #category : #formatting }
-String >> format: collection [ 
-	"Format the receiver by interpolating elements from collection, as in the following examples:  
-	'Today is {1}.' format: {Date today}.
-	'Today is {date}.' format: (Dictionary with: #date->Date today). 
-	'In {1} you can escape \{ by prefixing it with \\' format: {'strings'}.  "
-	
-	^ self class new: self size streamContents: [ :result | | stream |
-		stream := self readStream.
-		[ stream atEnd ] whileFalse: [ | currentChar | 
-			(currentChar := stream next) == ${
-				ifTrue: [ | expression index | 
-					expression := stream upTo: $}.
-					index := Integer readFrom: expression ifFail: [ expression ].
-					result nextPutAll: (collection at: index) asString ]
-				ifFalse: [
-					currentChar == $\
-						ifTrue: [ stream atEnd ifFalse: [ result nextPut: stream next ] ]
-						ifFalse: [ result nextPut: currentChar ] ] ] ]
+String >> format: collection [
+	"Format the receiver by interpolating elements from collection, as in the following examples:" 
+	"('Today is {1}.' format: {Date today}) >>> 'Today is 30 August 2019.'"
+	"('Today is {date}.' format: (Dictionary with: #date -> Date today)) >>>  'Today is 30 August 2019.'"
+	"('In {1} you can escape \{ by prefixing it with \\' format: {'strings'}) >>> 'In strings you can escape { by prefixing it with \' "
+	"('In \{1\} you can escape \{ by prefixing it with \\' format: {'strings'}) >>> 'In {1} you can escape { by prefixing it with \' "
+
+	^ self class
+		new: self size
+		streamContents: [ :result | 
+			| stream |
+			stream := self readStream.
+			[ stream atEnd ]
+				whileFalse: [ | currentChar |
+					(currentChar := stream next) == ${
+						ifTrue: [ | expression index |
+							expression := stream upTo: $}.
+							index := Integer readFrom: expression ifFail: [ expression ].
+							result nextPutAll: (collection at: index) asString ]
+						ifFalse: [ currentChar == $\
+								ifTrue: [ stream atEnd
+										ifFalse: [ result nextPut: stream next ] ]
+								ifFalse: [ result nextPut: currentChar ] ] ] ]
 ]
 
 { #category : #testing }
@@ -1593,9 +1598,13 @@ String >> hash [
 
 { #category : #comparing }
 String >> howManyMatch: string [ 
-	"Count the number of characters that match up in self and aString."
-	| count shorterLength |
+	"Count the number of characters in a substring that matches up in self and aString."
+	"('ab ab ac de' howManyMatch: 'ab') >>> 2"
+	"('abab ac de' howManyMatch: 'abab') >>> 4"
+	"('ab ab ac de' howManyMatch: 'a') >>> 1"
+	"('ab ab ac de' howManyMatch: 'z') >>> 0"
 	
+	| count shorterLength |
 	count := 0.
 	shorterLength := self size min: string size.
 	1 to: shorterLength do: [:index |
@@ -2289,7 +2298,11 @@ String >> startingAt: keyStart match: text startingAt: textStart [
 { #category : #accessing }
 String >> startsWithDigit [
 	"Answer whether the receiver's first character represents a digit"
-
+	"'abc' startsWithDigit >>> false"
+	"'0abc' startsWithDigit >>> true"
+	"'1abc' startsWithDigit >>> true"
+	"'11abc' startsWithDigit >>> true"
+	
 	^ self size > 0 and: [self first isDigit]
 ]
 
