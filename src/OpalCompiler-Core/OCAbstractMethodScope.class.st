@@ -15,15 +15,6 @@ Class {
 }
 
 { #category : #'temp vars - copying' }
-OCAbstractMethodScope >> addCopiedTempToAllScopesUpToDefVector: aVariable [
-		
-	(self hasCopyingTempNamed: aVariable name)
-		ifFalse: [self addCopyingTemp: aVariable ].
-	self tempVectorName = aVariable name ifTrue: [^ self].
-	^ self outerScope addCopiedTempToAllScopesUpToDefVector: aVariable.
-]
-
-{ #category : #'temp vars - copying' }
 OCAbstractMethodScope >> addCopyingTemp: aTempVar [
 	copiedVars add: (OCCopyingTempVariable new
 			originalVar: aTempVar originalVar;
@@ -54,11 +45,11 @@ OCAbstractMethodScope >> addCopyingTempToAllScopesUpToDefTemp: aVar [
 ]
 
 { #category : #'temp vars - copying' }
-OCAbstractMethodScope >> addCopyingTempToAllScopesUpToDefVector: aName [
+OCAbstractMethodScope >> addCopyingTempToAllScopesUpToDefVectorNamed: aName [
 		
 	(self hasCopyingTempNamed: aName) ifFalse: [self addCopyingTempNamed: aName].
 	self tempVectorName = aName ifTrue: [^ self].
-	^ self outerScope addCopyingTempToAllScopesUpToDefVector: aName.
+	^ self outerScope addCopyingTempToAllScopesUpToDefVectorNamed: aName.
 ]
 
 { #category : #'temp vars' }
@@ -176,26 +167,12 @@ OCAbstractMethodScope >> localTemps [
 ]
 
 { #category : #lookup }
-OCAbstractMethodScope >> lookupDefiningContextFor: name startingFrom: aContext [
-	"We lookup a variable in a context. If it not in this context, we look in the outer context using the corresponding outer scope. If found, we return the context"
+OCAbstractMethodScope >> lookupDefiningContextForVariable: var startingFrom: aContext [
+	"Is this the definition context for var? If it not, we look in the outer context using the corresponding outer scope. If found, we return the context"
 	
-	self
-		variableNamed: name
-		ifAbsent: [ ^self outerScope lookupDefiningContextFor: name startingFrom: (self nextOuterScopeContextOf: aContext)].
-	^aContext
-]
-
-{ #category : #lookup }
-OCAbstractMethodScope >> lookupTempVector: name inContext: aContext [
-	"Similar to lookupAndReadVar:inContext: but looks for a temp vector. If we don't find the temp vector (because it was nilled or not created), we lookup in the outer context with the corresponding outer scope"
-	
-	| variable theVector |
-	variable := self
-		variableNamed: name
-		ifAbsent: [^ self outerScope lookupTempVector: name inContext: aContext outerContext ].
-	theVector := variable readFromLocalContext: aContext.
-	theVector ifNil: [ ^ self outerScope lookupTempVector: name inContext: aContext outerContext ].
-	^ { variable . theVector }
+	^self = var scope
+		ifFalse: [ self outerScope lookupDefiningContextForVariable: var startingFrom: (self nextOuterScopeContextOf: aContext) ]
+		ifTrue: [ aContext ]
 ]
 
 { #category : #lookup }
@@ -271,6 +248,19 @@ OCAbstractMethodScope >> printOn: stream [
 OCAbstractMethodScope >> removeTemp: tempVar [
 
 	tempVars removeKey: tempVar name
+]
+
+{ #category : #'temp vars - copying' }
+OCAbstractMethodScope >> setCopyingTempToAllScopesUpToDefTemp: aVar to: aValue from: aContext [
+	"we need to update all the copies if we change the value of a copied temp"
+
+	self = aVar scope
+		ifTrue: [ ^ aVar writeFromLocalContext: aContext put: aValue ].
+	(self lookupVar: aVar name) writeFromLocalContext: aContext put: aValue.
+	^self outerScope
+		setCopyingTempToAllScopesUpToDefTemp: aVar
+		to: aValue
+		from: (self nextOuterScopeContextOf: aContext)
 ]
 
 { #category : #'temp vars' }
