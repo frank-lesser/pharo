@@ -9,6 +9,10 @@ Class {
 
 { #category : #'stream creation' }
 SequenceableCollection class >> << blockWithArg [
+	"An alias to #streamContents:"
+	
+	"Array << [ :stream | 0 to: 100 by: 25 do: [ :each | stream nextPut: each ] ] >>> #(0 25 50 75 100)"
+	
 	^ self streamContents: blockWithArg
 ]
 
@@ -20,10 +24,18 @@ SequenceableCollection class >> isAbstract [
 
 { #category : #'stream creation' }
 SequenceableCollection class >> new: newSize streamContents: blockWithArg [
+	"A variant of #streamContents: where the initial or even final size is given to optimize memory consumption"
+	
+	"(Array new: 3 streamContents: [ :out | 3 timesRepeat: [ out nextPut: 42 ] ]) >>> #(42 42 42)"
+	
 	| stream |
 	stream := WriteStream on: (self streamSpecies new: newSize).
 	blockWithArg value: stream.
-	^ stream contents
+	"If the write position of stream is at the end of the internal buffer of stream (originalContents),
+	we can return it directly instead of making a copy as contents would do"
+	^ stream position = stream originalContents size
+		ifTrue: [ stream originalContents ]
+		ifFalse: [ stream contents ]
 ]
 
 { #category : #'instance creation' }
@@ -36,24 +48,30 @@ SequenceableCollection class >> ofSize: n [
 
 { #category : #'stream creation' }
 SequenceableCollection class >> streamContents: blockWithArg [
+	"Build an instance of the receiver by writing elements to a stream.
+	More specifically: blockWithArg will be given a WriteStream on an instance of the receiver.
+	Inside blockWithArg you write elements to the stream to build up the collection.
+	At the end, the contents of the stream up to that point will be returned.
+	Note that the underlying collection grows as needed."
+	
+	"(Array streamContents: [ :out | out nextPut: 1; nextPutAll: #(2 3 4); nextPut: 5 ]) >>> #(1 2 3 4 5)"
 
 	^ self new: 100 streamContents: blockWithArg
 ]
 
 { #category : #'stream creation' }
 SequenceableCollection class >> streamContents: blockWithArg limitedTo: sizeLimit [
+	"A variant of #streamContents: with a strict size limit"
+
+	"(String streamContents: [:s | 10 timesRepeat: [s nextPutAll: 'foo']] limitedTo: 9) >>> 'foofoofoo'"
+
 	| stream |
-	stream :=
-		LimitedWriteStream
-			on: (self streamSpecies new: (100 min: sizeLimit))
-			limit: sizeLimit
-			limitBlock: [^ stream contents].
+	stream := LimitedWriteStream
+		on: (self streamSpecies new: (100 min: sizeLimit))
+		limit: sizeLimit
+		limitBlock: [ ^ stream contents ].
 	blockWithArg value: stream.
 	^ stream contents
-"
-String streamContents: [:s | 1000 timesRepeat: [s nextPutAll: 'Junk']] limitedTo: 25
- 'JunkJunkJunkJunkJunkJunkJ'
-"
 ]
 
 { #category : #accessing }
@@ -514,16 +532,6 @@ SequenceableCollection >> combinationsAt: jj in: aCollection after: nn do: aBloc
 					in: aCollection
 					after: index
 					do: aBlock ] ]
-]
-
-{ #category : #converting }
-SequenceableCollection >> concatenation [
-	|result index|
-
-	result := Array new: (self inject: 0 into: [:sum :each | sum + each size]).
-	index := 0.
-	self do: [:each | each do: [:item | result at: (index := index+1) put: item]].
-	^result
 ]
 
 { #category : #copying }
@@ -1550,6 +1558,40 @@ SequenceableCollection >> permutationsStartingAt: anInteger do: aBlock [
 		self swap: anInteger with: i.
 		self permutationsStartingAt: anInteger + 1 do: aBlock.
 		self swap: anInteger with: i ]
+]
+
+{ #category : #enumerating }
+SequenceableCollection >> piecesCutWhere: binaryBlock [
+	"Answer substrings of the receiver derived from cutting the receiver at points where binaryBlock answers true for adjacent elements."
+	"( #(1 2 3 1 6 1 2 3 4) piecesCutWhere: [ :a :b | a = 1 and: [ b = 2]]) asArray >>> #(#(1) #(2 3 1 6 1) #(2 3 4))"
+	| pieces |
+	pieces := OrderedCollection new.
+	self 
+		piecesCutWhere: binaryBlock
+		do: [ :piece | pieces add: piece ].
+	^pieces
+
+   "'Now is the time for all good people to come to the aid of the cause of world peace.  It is just fine, even desirable, to love your country, if that means wanting it to play a beneficial role in the course of world events and be the best possible example of a good society.  But if it means wanting dominion over the rest of the world, it is not love but defensiveness or self-glorification, and will lead only to oblivion.'  piecesCutWhere: [:a :b| a = $. and: [b isSeparator]]"
+]
+
+{ #category : #enumerating }
+SequenceableCollection >> piecesCutWhere: binaryBlock do: pieceBlock [
+	"Evaluate pieceBlock with substrings of the receiver derived from cutting the receiver at points where binaryBlock answers true for adjacent elements."
+
+	| size lastCut this next |
+	(size := self size) <= 1 ifTrue:
+		 [size = 1 ifTrue: [pieceBlock value: self].
+		^self].
+	lastCut := 1.
+	this := self at: 1.
+	2 to: size do:
+		[:i|
+		next := self at: i.
+		(binaryBlock value: this value: next) ifTrue:
+			[pieceBlock value: (self copyFrom: lastCut to: i - 1).
+			lastCut := i].
+		this := next].
+	pieceBlock value: (self copyFrom: lastCut to: size)
 ]
 
 { #category : #enumerating }

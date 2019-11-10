@@ -831,9 +831,9 @@ ClassDescription >> isInstanceSide [
 
 { #category : #testing }
 ClassDescription >> isLocalMethodsProtocol: aProtocol [
-	aProtocol methods ifEmpty: [ ^true ].
-	
-	^aProtocol methods anySatisfy: [ :each | self isLocalSelector: each]
+	aProtocol methodSelectors ifEmpty: [ ^ true ].
+
+	^ aProtocol methodSelectors anySatisfy: [ :each | self isLocalSelector: each ]
 ]
 
 { #category : #testing }
@@ -1349,13 +1349,6 @@ ClassDescription >> usesPoolVarNamed: aString [
 { #category : #compiling }
 ClassDescription >> wantsChangeSetLogging [
 	"Answer whether code submitted for the receiver should be remembered by the changeSet mechanism."
-
-	^ true
-]
-
-{ #category : #compiling }
-ClassDescription >> wantsRecompilationProgressReported [
-	"Answer whether the receiver would like progress of its recompilation reported interactively to the user."
 
 	^ true
 ]

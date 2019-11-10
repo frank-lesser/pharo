@@ -60,22 +60,10 @@ NECSelectorEntry >> findMethodWith: anECContext do: foundBlock ifAbsent: notfoun
 					implementors size == 1
 						ifTrue: [| ref | 
 							ref := implementors first.
-							self lookupSelector: ref selector class: ref realClass]
+							ref realClass lookupSelector: ref selector]
 						ifFalse: [^ notfoundBlock value: contents]]
 				ifNotNil: [self lookupSelector: contents class: theClass]. 
 	^ foundBlock value: result first value: result second
-]
-
-{ #category : #operations }
-NECSelectorEntry >> guessTypeWith: anECContext [
-	"If the variable is a class, i return the variable itself or its class name.
-	Otherwise i return nil."
-	| globalEntry |
-	anECContext ifNil: [ ^ nil ].
-	globalEntry := anECContext globals at: contents ifAbsent: [^ nil].
-	globalEntry isBehavior ifTrue: [^ globalEntry].
-	globalEntry ifNotNil: [^ globalEntry class].
-	^ nil
 ]
 
 { #category : #private }
@@ -102,23 +90,6 @@ NECSelectorEntry >> implementorsDescription: aSymbol [
 NECSelectorEntry >> label [
 	"I return whether the variable is a class or a method."
 	^ (self guessTypeWith: nil) ifNil:[ 'method' ] ifNotNil: [ 'class' ].
-]
-
-{ #category : #private }
-NECSelectorEntry >> lookupSelector: aSymbol class: aClass [ 
-	"Look up the given selector in my methodDictionary.
-	Return the corresponding method if found.
-	Otherwise chase the superclass chain and try again.
-	Return nil if no method is found."
-	| lookupClass |
-	lookupClass := aClass.
-	[lookupClass isNil]
-		whileFalse: [(lookupClass includesSelector: aSymbol)
-				ifTrue: [^ Array
-						with: lookupClass
-						with: (lookupClass compiledMethodAt: aSymbol)].
-			lookupClass := lookupClass superclass].
-	^ nil
 ]
 
 { #category : #private }
