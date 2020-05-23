@@ -15,13 +15,8 @@ Class {
 }
 
 { #category : #'instance creation' }
-NECEntry class >> contents: aString [ 
-	^ self new setContents: aString
-]
-
-{ #category : #'instance creation' }
 NECEntry class >> contents: aString node: aNode [
-	^ self new setContents: aString node: aNode
+	^ self new contents: aString node: aNode
 ]
 
 { #category : #operations }
@@ -29,18 +24,9 @@ NECEntry >> <= aECEntry [
 	^ contents <= aECEntry contents
 ]
 
-{ #category : #'ui related' }
-NECEntry >> browseWith: anECContext [ 
-	| class |
-	"no really correct, we need the class of the node..."
-	class := node methodNode compilationContext getClass.
-	Smalltalk tools browser openOnClass: class.
-	^true
-]
-
-{ #category : #accessing }
-NECEntry >> completion [
-	^ self contents asSymbol
+{ #category : #private }
+NECEntry >> browse [
+	self subclassResponsibility
 ]
 
 { #category : #accessing }
@@ -48,29 +34,20 @@ NECEntry >> contents [
 	^contents
 ]
 
+{ #category : #accessing }
+NECEntry >> contents: aString node: aNode [
+	contents := aString.
+	node := aNode
+]
+
 { #category : #'detail information' }
-NECEntry >> createDescriptionWith: anECContext [ 
-	| clazz |
-	"no really correct, we need the class of the node..."
-	clazz := node methodNode compilationContext getClass.
-	^ clazz 
-		ifNil: [ NECEntryDescription label: self label ]
-		ifNotNil: 
-			[ NECEntryDescription 
-				label: self label
-				title: clazz printString
-				description: clazz comment ]
+NECEntry >> createDescription [
+	self subclassResponsibility
 ]
 
 { #category : #operations }
-NECEntry >> descriptionWith: anECContext [ 
-	^description ifNil: [ description := self createDescriptionWith: anECContext ]
-]
-
-{ #category : #operations }
-NECEntry >> guessTypeWith: aContext [
-	"senders of this need to get the type from the AST"
-	^nil
+NECEntry >> description [
+	^description ifNil: [ description := self createDescription ]
 ]
 
 { #category : #accessing }
@@ -92,15 +69,4 @@ NECEntry >> printOn: aStream [
 		nextPut: $,;
 		nextPutAll: self hightlightSymbol;
 		nextPut: $)
-]
-
-{ #category : #accessing }
-NECEntry >> setContents: aString [ 
-	contents := aString.
-]
-
-{ #category : #accessing }
-NECEntry >> setContents: aString node: aNode [
-	contents := aString.
-	node := aNode
 ]

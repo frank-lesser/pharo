@@ -15,7 +15,7 @@ Class {
 	#category : #'UnifiedFFI-Arguments'
 }
 
-{ #category : #'instance-creation' }
+{ #category : #'instance creation' }
 FFIVariableArgument class >> name: aString typeName: aTypeName arity: anInteger [
 	
 	^ self new
@@ -28,12 +28,6 @@ FFIVariableArgument class >> name: aString typeName: aTypeName arity: anInteger 
 FFIVariableArgument >> asOldArraySpec [
 
 	^ { name . nil . type name . type arity }
-]
-
-{ #category : #'emitting code' }
-FFIVariableArgument >> emitArgument: anIRBuilder context: aContext [
-
-	self resolvedType emitArgument: anIRBuilder context: aContext.
 ]
 
 { #category : #accessing }

@@ -9,14 +9,14 @@ self example
 Class {
 	#name : #SpTreeTablePresenter,
 	#superclass : #SpAbstractWidgetPresenter,
-	#traits : 'TSpHaveWrappingScrollBars + SpTContextMenu',
-	#classTraits : 'TSpHaveWrappingScrollBars classTrait + SpTContextMenu classTrait',
+	#traits : 'SpTHaveWrappingScrollBars + SpTContextMenu + SpTSearchable',
+	#classTraits : 'SpTHaveWrappingScrollBars classTrait + SpTContextMenu classTrait + SpTSearchable classTrait',
 	#instVars : [
 		'#columns => SpObservableSlot',
 		'#showColumnHeaders => SpObservableSlot',
 		'#isResizable => SpObservableSlot',
-		'#selection => SpObservableSlot',
 		'#roots => SpObservableSlot',
+		'#selectionMode',
 		'#childrenBlock',
 		'#activationBlock',
 		'#activateOnSingleClick'
@@ -59,15 +59,10 @@ SpTreeTablePresenter >> addColumn: aColumn [
 	columns := self columns copyWith: aColumn
 ]
 
-{ #category : #'selection mode' }
+{ #category : #api }
 SpTreeTablePresenter >> beMultipleSelection [
-	| newSelectionMode |
-	
-	newSelectionMode := (SpTreeMultipleSelectionMode on: self)
-		copyFrom: selection;
-		yourself.
-	
-	selection := newSelectionMode.
+
+	self selectionMode: (SpTreeMultipleSelectionMode on: self)
 ]
 
 { #category : #api }
@@ -78,6 +73,12 @@ SpTreeTablePresenter >> beNotResizable [
 { #category : #api }
 SpTreeTablePresenter >> beResizable [
 	self isResizable: true
+]
+
+{ #category : #api }
+SpTreeTablePresenter >> beSingleSelection [
+	
+	self selectionMode: (SpTreeSingleSelectionMode on: self)
 ]
 
 { #category : #private }
@@ -146,6 +147,7 @@ SpTreeTablePresenter >> hideColumnHeaders [
 { #category : #initialization }
 SpTreeTablePresenter >> initialize [
 	super initialize.
+	self initializeTSearchable.
 
 	self withScrollBars.
 	
@@ -154,9 +156,10 @@ SpTreeTablePresenter >> initialize [
 	showColumnHeaders := true.
 	columns := #().
 	isResizable := false.
-	selection := SpTreeSingleSelectionMode on: self.
 	childrenBlock := [ :item | #() ].
 	roots := #().
+
+	self beSingleSelection.
 	self activateOnDoubleClick.
 	self registerEvents
 ]
@@ -229,6 +232,24 @@ SpTreeTablePresenter >> roots: aCollection [
 	self selection clearSelection
 ]
 
+{ #category : #private }
+SpTreeTablePresenter >> searchValueOf: item [ 
+
+	^ item asString
+]
+
+{ #category : #api }
+SpTreeTablePresenter >> selectItem: anItem [
+
+	self selection selectItem: anItem
+]
+
+{ #category : #api }
+SpTreeTablePresenter >> selectItems: aListOfItem [
+
+	self selection selectItems: aListOfItem
+]
+
 { #category : #api }
 SpTreeTablePresenter >> selectPath: aPath [
 
@@ -246,10 +267,24 @@ SpTreeTablePresenter >> selectedItem [
 	^ self selection selectedItem
 ]
 
+{ #category : #api }
+SpTreeTablePresenter >> selectedItems [
+	
+	^ self selection selectedItems
+]
+
 { #category : #accessing }
 SpTreeTablePresenter >> selection [
 	
-	^ selection value
+	^ selectionMode value
+]
+
+{ #category : #private }
+SpTreeTablePresenter >> selectionMode: aMode [
+	
+	selectionMode ifNotNil: [ 
+		selectionMode transferSubscriptionsTo: aMode ].
+	selectionMode := aMode
 ]
 
 { #category : #api }
@@ -262,6 +297,18 @@ SpTreeTablePresenter >> showColumnHeaders [
 SpTreeTablePresenter >> unselectAll [ 
 
 	self selection unselectAll
+]
+
+{ #category : #api }
+SpTreeTablePresenter >> unselectItem: anItem [
+
+	self selection unselectItem: anItem
+]
+
+{ #category : #api }
+SpTreeTablePresenter >> unselectPath: aPath [
+
+	self selection unselectPath: aPath
 ]
 
 { #category : #'api-events' }
@@ -284,7 +331,7 @@ SpTreeTablePresenter >> whenIsResizableChangedDo: aBlock [
 { #category : #accessing }
 SpTreeTablePresenter >> whenMultiSelectionChangedDo: aBlockClosure [ 
 	
-	selection whenChangedDo: aBlockClosure 
+	selectionMode whenChangedDo: aBlockClosure 
 ]
 
 { #category : #'api-events' }
@@ -308,7 +355,7 @@ SpTreeTablePresenter >> whenSelectedItemChangedDo: aBlockClosure [
 { #category : #'api-events' }
 SpTreeTablePresenter >> whenSelectionChangedDo: aBlock [ 
 	
-	self selection whenChangedDo: [ aBlock cull: selection ]
+	self selection whenChangedDo: [ aBlock cull: selectionMode ]
 ]
 
 { #category : #'api-events' }

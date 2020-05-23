@@ -11,7 +11,6 @@ Class {
 		'keyboardFocus',
 		'eventListeners',
 		'mouseListeners',
-		'keyboardListeners',
 		'mouseClickState',
 		'mouseOverHandler',
 		'lastMouseEvent',
@@ -27,8 +26,6 @@ Class {
 		'lastEventBuffer',
 		'lastKeyScanCode',
 		'combinedChar',
-		'eventSource',
-		'lastSystemEvent',
 		'captureBlock',
 		'recentModifiers'
 	],
@@ -130,6 +127,7 @@ HandMorph class >> settingsOn: aBuilder [
 		parent: #pharoSystem;
 		label: 'HandMorph event statistics';
 		target: self;
+		default: false;
 		selector: #logEventStatsEnabled;
 		description: 'Enable/disable gathering global statistics of events handled by HandMorphs.
 "HandMorph eventStats inspect"'

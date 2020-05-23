@@ -12,7 +12,6 @@ Class {
 	#name : #CompletionEngine,
 	#superclass : #Object,
 	#instVars : [
-		'model',
 		'menuMorph',
 		'editor',
 		'context',
@@ -76,10 +75,9 @@ CompletionEngine >> handleKeystrokeAfter: aKeyboardEvent editor: aParagraphEdito
 	aParagraphEditor atCompletionPosition 
 		ifFalse: [ ^ self closeMenu ].
 	
-	self setModel: aParagraphEditor model.
 	context narrowWith: aParagraphEditor wordAtCaret.
 	menuMorph narrowCompletion.
-	(context isNil or: [ context model hasEntries not])
+	(context isNil or: [ context hasEntries not])
 		ifTrue: [ ^self closeMenu ]
 ]
 
@@ -90,11 +88,11 @@ CompletionEngine >> handleKeystrokeBefore: aKeyboardEvent editor: anEditor [
 	
 	This method would be cleaner if splitted."
 
-	| keyCharacter controlKeyPressed |
+	| keyCharacter controlKeyPressed commandKeyPressed |
 	self setEditor: anEditor.
-	self setModel: editor model.
 	keyCharacter := aKeyboardEvent keyCharacter.
 	controlKeyPressed := aKeyboardEvent controlKeyPressed.
+	commandKeyPressed := aKeyboardEvent commandKeyPressed.
 	self isMenuOpen
 		ifFalse: [ ^ self handleKeystrokeWithoutMenu: aKeyboardEvent ].
 	(keyCharacter = Character home and: [ self captureNavigationKeys ])
@@ -105,11 +103,11 @@ CompletionEngine >> handleKeystrokeBefore: aKeyboardEvent editor: anEditor [
 		ifTrue: [ 
 			menuMorph end.
 			^ true ].
-	(keyCharacter = Character arrowRight and: [ self captureNavigationKeys ])
+	(keyCharacter = Character arrowRight and: [commandKeyPressed and: [ self captureNavigationKeys ]])
 		ifTrue: [ 
 			menuMorph showDetail.
 			^ true ].
-	(keyCharacter = Character arrowLeft and: [ self captureNavigationKeys ])
+	(keyCharacter = Character arrowLeft  and: [commandKeyPressed and: [ self captureNavigationKeys ]])
 		ifTrue: [ ^ self leftArrow ].
 	keyCharacter = Character arrowUp
 		ifTrue: [ 
@@ -191,10 +189,9 @@ CompletionEngine >> isMenuOpen [
 
 { #category : #testing }
 CompletionEngine >> isScripting [
-	
-	"demeters law :("
+
 	^ self editor 
-		ifNotNil: [ self editor textArea editingMode isScripting ]
+		ifNotNil: [ self editor isScripting ]
 		ifNil: [ false ]
 ]
 
@@ -221,11 +218,6 @@ CompletionEngine >> menuMorphClass [
 	^ NECMenuMorph
 ]
 
-{ #category : #accessing }
-CompletionEngine >> model [
-	^model
-]
-
 { #category : #keyboard }
 CompletionEngine >> newSmartCharacterInsertionStringForLeft: left right: right [
 	((NECPreferences smartCharactersWithDoubleSpace includes: left) or: [
@@ -243,30 +235,23 @@ CompletionEngine >> newSmartCharacterInsertionStringForLeft: left right: right [
 
 { #category : #'menu morph' }
 CompletionEngine >> openMenu [
-	^ self openMenuFor: editor.
-]
-
-{ #category : #'menu morph' }
-CompletionEngine >> openMenuFor: aParagraphEditor [ 
-	| theMenu |
+	| theMenu class |
 	self stopCompletionDelay.
-	
+	class := editor model ifNotNil: [ :model | model selectedClassOrMetaClass ].
 	context := self contextClass
-				controller: self
-				class: model selectedClassOrMetaClass 
-				source: aParagraphEditor text string
-				position: aParagraphEditor caret - 1.
-	
-	editor := aParagraphEditor.
+				engine: self
+				class: class
+				source: editor text string
+				position: editor caret - 1.
 
 	theMenu := self menuMorphClass
-				controller: self
-				position: (aParagraphEditor selectionPosition: context completionToken).
+				engine: self
+				position: (editor selectionPosition: context completionToken).
 				
 	theMenu isClosed
 		ifFalse: [ menuMorph := theMenu ].
 	
-	(context isNil or: [ context model hasEntries not ])
+	(context isNil or: [ context hasEntries not ])
 		ifTrue: [ ^self closeMenu ].
 ]
 
@@ -292,11 +277,6 @@ CompletionEngine >> setEditor: anObject [
 		editor morph ifNotNil: [:m | m announcer unsubscribe: self] ].
 	editor := anObject.
 	editor morph onAnnouncement: MorphLostFocus send: #closeMenu to: self.
-]
-
-{ #category : #initialization }
-CompletionEngine >> setModel: aStringHolder [ 
-	model := aStringHolder
 ]
 
 { #category : #keyboard }

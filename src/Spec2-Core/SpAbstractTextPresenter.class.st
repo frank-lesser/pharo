@@ -34,21 +34,6 @@ SpAbstractTextPresenter >> accept [
 ]
 
 { #category : #api }
-SpAbstractTextPresenter >> accept: aText notifying: aNotifyier [
-	| accept |
-	accept := self acceptBlock cull: aText cull: aNotifyier.
-	accept == false ifTrue: [ ^ false ].
-
-	self text: aText copy.
-
-	"Raise an announcement"
-	self actionPerformed.
-
-	self changed: #clearUserEdits.
-	^ true
-]
-
-{ #category : #api }
 SpAbstractTextPresenter >> acceptBlock [
 	"Return the block to perform when the text is accepted.
 	The block must have one argument, which will be the accepted text"
@@ -112,7 +97,7 @@ SpAbstractTextPresenter >> clearContent [
 SpAbstractTextPresenter >> clearSelection [
 	"Remove selection from the text model"
 
-	self selection: (0 to: 0)
+	self selectionInterval: (0 to: 0)
 ]
 
 { #category : #'undo-redo' }
@@ -301,10 +286,8 @@ SpAbstractTextPresenter >> selectAll [
 
 { #category : #api }
 SpAbstractTextPresenter >> selectLine [
-
-	self withAdapterDo: [ :anAdapter |
-		anAdapter selectLine ].
-	^ self selection
+	self withAdapterDo: [ :anAdapter | anAdapter selectLine ].
+	^ self selectionInterval
 ]
 
 { #category : #NOCompletion }
@@ -315,16 +298,35 @@ SpAbstractTextPresenter >> selectedClassOrMetaClass [
 
 { #category : #api }
 SpAbstractTextPresenter >> selection [
-	"Get the text selection.
+	self
+		deprecated:
+			'#selection was used to return an interval, and did not convey the correct meaning. Use #selectionInterval instead.'
+		transformWith: '`@receiver selection' -> '`@receiver selectionInterval'.
+	^ self selectionInterval
+]
+
+{ #category : #api }
+SpAbstractTextPresenter >> selection: anInterval [
+	self
+		deprecated:
+			'#selection: was used to set an interval, and did not convey the correct meaning. Use #selectionInterval: instead.'
+		transformWith: '`@receiver selection: `@arg' -> '`@receiver selectionInterval: `@arg'.
+	self selectionInterval: anInterval
+]
+
+{ #category : #api }
+SpAbstractTextPresenter >> selectionInterval [
+	"Get the text selection interval.
 	 I will update the selection from adapter first"
+	
 	self withAdapterDo: [ :anAdapter | 
 		self rawSelection: anAdapter selection ].
 	^ selection ifNil: [ ^ 1 to: 0 ]
 ]
 
 { #category : #api }
-SpAbstractTextPresenter >> selection: anInterval [
-	"Set the text selection without changing the readSelectionBlock"
+SpAbstractTextPresenter >> selectionInterval: anInterval [
+	"Set the text selection interval without changing the readSelectionBlock"
 
 	selection := anInterval
 ]
@@ -343,6 +345,7 @@ SpAbstractTextPresenter >> setSelection: anInterval [
 
 { #category : #api }
 SpAbstractTextPresenter >> text [
+
 	^ text
 ]
 

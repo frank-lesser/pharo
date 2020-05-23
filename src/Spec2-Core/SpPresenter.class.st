@@ -177,7 +177,7 @@ SpPresenter class >> on: aDomainObject [
 		in: #Pharo8."
 		
 	^ self 
-		newApplication: SpNullApplication new 
+		newApplication: SpApplication defaultApplication
 		model: aDomainObject 
 ]
 
@@ -307,6 +307,7 @@ SpPresenter >> applyMenuModel: aMenuModel [
 { #category : #converting }
 SpPresenter >> asPresenter [
 	"This allows to use presenter instances inside layouts directly"
+
 	^ self
 ]
 
@@ -411,9 +412,10 @@ SpPresenter >> defaultWindowPresenterClass [
 	^ SpWindowPresenter
 ]
 
-{ #category : #'as yet unclassified' }
-SpPresenter >> defer: aBlockClosure [ 
-	self application defer: aBlockClosure
+{ #category : #accessing }
+SpPresenter >> defer: aBlock [
+
+	self application defer: aBlock
 ]
 
 { #category : #private }
@@ -701,6 +703,11 @@ SpPresenter >> newCode [
 ]
 
 { #category : #widgets }
+SpPresenter >> newComponentList [
+	^ self instantiate: SpComponentListPresenter
+]
+
+{ #category : #widgets }
 SpPresenter >> newDiff [
 	^ self instantiate: SpDiffPresenter
 ]
@@ -802,6 +809,18 @@ SpPresenter >> newRadioButton [
 ]
 
 { #category : #widgets }
+SpPresenter >> newRichText [
+
+	^ self instantiate: SpRichTextPresenter
+]
+
+{ #category : #widgets }
+SpPresenter >> newSearchInput [
+
+	^ self instantiate: SpSearchInputFieldPresenter
+]
+
+{ #category : #widgets }
 SpPresenter >> newSlider [
 	^ self instantiate: SpSliderPresenter
 ]
@@ -826,6 +845,12 @@ SpPresenter >> newText [
 { #category : #widgets }
 SpPresenter >> newTextInput [
 	^ self instantiate: SpTextInputFieldPresenter
+]
+
+{ #category : #widgets }
+SpPresenter >> newToggleButton [
+
+	^ self instantiate: SpToggleButtonPresenter
 ]
 
 { #category : #widgets }
@@ -929,15 +954,6 @@ SpPresenter >> retrieveSpec: aSelector [
 
 	self layout ifNotNil: [ ^ self layout ].
 	^ super retrieveSpec: aSelector
-]
-
-{ #category : #TOMOVE }
-SpPresenter >> setExtentAndBindingTo: widget [
-
-	self flag: #TODO. "This is bad. Extent needs to be 'ensured' at adapter level. 
-	Same for keybindings"
-	self ensureExtentFor: widget.
-	self ensureKeyBindingsFor: widget
 ]
 
 { #category : #'accessing model' }

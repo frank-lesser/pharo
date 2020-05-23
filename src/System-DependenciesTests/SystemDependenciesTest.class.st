@@ -151,7 +151,7 @@ SystemDependenciesTest >> knownUIDependencies [
 	"ideally this list should be empty"	
 
 	self flag: #todo. "The Deprecated80 dependency should soon vanish. This is just the time we finish Spec migration."
-	^ #('AST-Core-Tests' 'Athens-Cairo' 'Athens-Core' "Those are added for the development of Spec2 and should probably be removed"
+	^ #('AST-Core-Tests'  'Athens-Cairo' 'Athens-Core' "Those are added for the development of Spec2 and should probably be removed"
 	#'Athens-Morphic' #RecentSubmissions #'Refactoring-Critics' #'Refactoring-Environment' #'Reflectivity-Tools' #Shout #'Tool-Diff' #'Tool-FileList' #'Tool-ProcessBrowser' #'Tool-Profilers' 'Deprecated80')
 ]
 
@@ -208,9 +208,11 @@ SystemDependenciesTest >> testExternalBasicToolsDependencies [
 		{ BaselineOfMenuRegistration name }, BaselineOfMenuRegistration allPackageNames,
 		{ BaselineOfUI name }, BaselineOfUI allPackageNames,
 		{ BaselineOfSpec name }, BaselineOfSpec allPackageNames,
-		{ BaselineOfCommander2 name }, BaselineOfCommander2 allPackageNames,
+		{ BaselineOfCommander2 name }, (BaselineOfCommander2 deepPackagesOfGroupNamed: #default),
 		{ BaselineOfSpec2 name }, BaselineOfSpec2 allPackageNames,
-		{ BaselineOfBasicTools name }, BaselineOfBasicTools allPackageNames ).
+		{ BaselineOfBasicTools name }, BaselineOfBasicTools allPackageNames,
+		{ BaselineOfFuel name }, (BaselineOfFuel packagesOfGroupNamed: #Core),
+		{ BaselineOfFuelPlatform name }, (BaselineOfFuelPlatform allPackageNames) ).
 	
 	self assertCollection: dependencies hasSameElements: self knownBasicToolsDependencies.
 ]
@@ -280,7 +282,6 @@ SystemDependenciesTest >> testExternalIDEDependencies [
 	BaselineOfMorphicCore.
 	BaselineOfSlot.
 	BaselineOfSpec.
-	BaselineOfCommander2.
 	BaselineOfSpec2.
 	BaselineOfParametrizedTests.
 	BaselineOfSUnit.
@@ -312,10 +313,13 @@ SystemDependenciesTest >> testExternalIDEDependencies [
 	BaselineOfGeneralHelp.
 	BaselineOfShout.
 	BaselineOfKernelTests.
-	BaselineOfBlueInk.
 	 } do: [ :baseline | packages := packages , {baseline name} , baseline allPackageNames ].
 
+	packages := packages , { BaselineOfFuel name } , (BaselineOfFuel packagesOfGroupNamed: #Core).
+	packages := packages , { BaselineOfFuelPlatform name } , BaselineOfFuelPlatform allPackageNames.
+
 	packages := packages ,  { BaselineOfCommander name} , (self packagesOfGroupNamed: 'default' on: BaselineOfCommander).
+	packages := packages ,  { BaselineOfCommander2 name} , (self packagesOfGroupNamed: 'default' on: BaselineOfCommander2).
 	packages := packages , { BaselineOfIceberg name. BaselineOfLibGit name. BaselineOfCalypso name}.
 
 	packages := packages ,  (self packagesOfGroupNamed: 'FullEnvironment' on: BaselineOfCalypso ).
@@ -438,7 +442,9 @@ SystemDependenciesTest >> testExternalMorphicDependencies [
 		BaselineOfUnifiedFFI allPackageNames,
 		BaselineOfMorphicCore allPackageNames,
 		BaselineOfMorphic allPackageNames,
-		BaselineOfMenuRegistration allPackageNames ).
+		BaselineOfMenuRegistration allPackageNames,
+		(BaselineOfFuel packagesOfGroupNamed: #Core),
+		BaselineOfFuelPlatform allPackageNames ).
 	
 	self assertCollection: dependencies hasSameElements: self knownMorphicDependencies.
 ]
@@ -495,12 +501,13 @@ SystemDependenciesTest >> testExternalSpec2Dependencies [
 		BaselineOfMorphicCore allPackageNames,
 		BaselineOfMorphic allPackageNames,
 		BaselineOfMenuRegistration allPackageNames,
+		(BaselineOfFuel packagesOfGroupNamed: #Core),
+		BaselineOfFuelPlatform allPackageNames,
 
-		BaselineOfCommander2 allPackageNames,
+		(BaselineOfCommander2 deepPackagesOfGroupNamed: #default),
 		
 		BaselineOfSpec2 allPackageNames,
 	
-
 		"Tests"
 		BaselineOfSUnit defaultPackageNames,
 		BaselineOfParametrizedTests allPackageNames))
@@ -544,10 +551,12 @@ SystemDependenciesTest >> testExternalUIDependencies [
 		BaselineOfMorphicCore allPackageNames,
 		BaselineOfMorphic allPackageNames,
 		BaselineOfSpec allPackageNames,
-		BaselineOfCommander2 allPackageNames,
+		(BaselineOfCommander2 deepPackagesOfGroupNamed: #default),
 		BaselineOfSpec2 allPackageNames,
 		BaselineOfUI allPackageNames,
-		BaselineOfMenuRegistration allPackageNames )).
+		BaselineOfMenuRegistration allPackageNames,
+		(BaselineOfFuel packagesOfGroupNamed: #Core),
+		BaselineOfFuelPlatform allPackageNames )).
 	
 	self assertCollection: dependencies hasSameElements: self knownUIDependencies.
 ]

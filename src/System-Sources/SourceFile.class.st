@@ -49,6 +49,20 @@ SourceFile >> cr [
 	stream cr
 ]
 
+{ #category : #buffering }
+SourceFile >> discardBuffer [
+
+	stream wrappedStream discardBuffer
+]
+
+{ #category : #accessing }
+SourceFile >> ensureWrittenPosition: aPosition [
+
+	self isReadOnly ifTrue: [ ^ false ].
+	
+	^ stream ensureWrittenPosition: aPosition
+]
+
 { #category : #accessing }
 SourceFile >> flush [
 
@@ -123,13 +137,13 @@ SourceFile >> next: anInteger putAll: aString startingAt: startIndex [
 
 ]
 
-{ #category : #'fileIn/Out' }
+{ #category : #'file in/out' }
 SourceFile >> nextChunk [
 
 	^ (ChunkReadStream on: stream) next
 ]
 
-{ #category : #'fileIn/Out' }
+{ #category : #'file in/out' }
 SourceFile >> nextChunkPut: aChunk [
 
 	^ (ChunkWriteStream on: stream) nextPut: aChunk
